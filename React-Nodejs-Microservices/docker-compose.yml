@@ -1,0 +1,58 @@
+version: '3'
+services:
+  api-gateway:
+    build: './api-gateway'
+    depends_on:
+      - listings-services
+      - users-services
+    ports:
+      - 7000:7000
+    volumes:
+      - ./api-gateway:/opt/docker/clasifeid-app
+
+  classified-app:
+    build: './classified-app'
+    depends_on:
+      - api-gateway
+    ports:
+      - 7001:3000
+    volumes:
+      - ./api-gateway:/opt/docker/clasifeid-app
+
+  listings-services:
+    build: './listings-services'
+    depends_on:
+      - listings-services-db
+    environment:
+      - DB_URI=mysql://root:password@listings-services-db/db?charset=UTF8
+    ports:
+      - 7100:7100
+    volumes:
+      - ./listings-services:/opt/docker/clasifeid-app
+
+  listings-services-db:
+    environment:
+      - MYSQL_ROOT_PASSWORD=password
+      - MYSQL_DATABASE=db
+    image: mysql:8.0.25
+    ports:
+      - 0.0.0.0:7200:3306
+
+  users-services:
+    build: './users-services'
+    depends_on:
+      - users-services-db
+    environment:
+      - DB_URI=mysql://root:password@users-services-db/db?charset=UTF8
+    ports:
+      - 7101:7101
+    volumes:
+      - ./users-services:/opt/docker/clasifeid-app
+
+  users-services-db:
+    environment:
+      - MYSQL_ROOT_PASSWORD=password
+      - MYSQL_DATABASE=db
+    image: mysql:8.0.25
+    ports:
+      - 0.0.0.0:7201:3306
