@@ -3,12 +3,13 @@ import cors from 'cors';
 import { Product } from './entities/product.entity';
 import { ProductRouter } from './routes/product.routes';
 import { dataSource } from './datasource';
+import { Channel, Connection } from 'amqplib';
 
 const app = express();
 const port = process.env.PORT!;
 const clientBaseUrl = process.env.REACT_BASE_URL!;
 
-export const startServer = async () => {
+export const startServer = async (connection: Connection, channel: Channel) => {
   try {
     app.use(
       cors({
@@ -18,8 +19,8 @@ export const startServer = async () => {
     app.use(express.json());
 
     const productsRepository = dataSource.getRepository(Product);
-    const productMiddleware = ProductRouter(productsRepository);
-    app.use('/api/products', productMiddleware);
+    const productRoutes = ProductRouter(productsRepository, channel);
+    app.use('/api/products', productRoutes);
 
     app.listen(port, async () => {
       await dataSource.initialize();
@@ -27,5 +28,10 @@ export const startServer = async () => {
     });
   } catch (error) {
     console.error('Error connecting to the database:', error.message);
+  } finally {
+    process.on('beforeExit', () => {
+      console.log('Closing connection');
+      connection.close();
+    });
   }
 };

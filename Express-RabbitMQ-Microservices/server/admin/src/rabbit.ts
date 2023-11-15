@@ -1,14 +1,13 @@
-import amqplib, { Channel, Connection } from 'amqplib';
-
-const amqpUrl = process.env.RABBITMQ_URL!;
-let channel: Channel;
-let connection: Connection;
+import amqplib from 'amqplib';
+import { startServer } from './app';
 
 export const connect = async () => {
   try {
+    const amqpUrl = process.env.RABBITMQ_URL!;
     const amqpServer = amqpUrl;
-    connection = await amqplib.connect(amqpServer);
-    await connection.createChannel();
+    const connection = await amqplib.connect(amqpServer);
+    const channel = await connection.createChannel();
+    startServer(connection, channel);
   } catch (error) {
     console.log(error);
   }
