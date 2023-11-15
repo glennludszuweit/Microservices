@@ -1,7 +1,5 @@
 import express from 'express';
 import cors from 'cors';
-import { Product } from './entities/product.entity';
-import { ProductRouter } from './routes/product.routes';
 import { dataSource } from './datasource';
 
 const app = express();
@@ -15,11 +13,8 @@ export const startServer = async () => {
         origin: [clientBaseUrl],
       })
     );
-    app.use(express.json());
 
-    const productsRepository = dataSource.getRepository(Product);
-    const productMiddleware = ProductRouter(productsRepository);
-    app.use('/api/products', productMiddleware);
+    app.use(express.json());
 
     app.listen(port, async () => {
       await dataSource.initialize();
